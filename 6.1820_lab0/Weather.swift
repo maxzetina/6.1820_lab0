@@ -19,12 +19,14 @@ enum NetworkError: Error {
     var windString: String = "--"
     var visibilityKm: String = "--"
     var name: String = "--"
+    
+    var error: Bool = false
         
-    let APP_ID = "547ea74c1786dfee3dc7a51738595d15"
+    private let APP_ID = "547ea74c1786dfee3dc7a51738595d15"
     
-    let baseURL = "https://api.openweathermap.org/data/2.5"
+    private let baseURL = "https://api.openweathermap.org/data/2.5"
     
-    func GET<T: Codable>(endpoint: String, type: T.Type) async -> T {
+    func GET<T: Codable>(endpoint: String, type: T.Type) async -> Result<T, NetworkError> {
         
         guard let url = URL(string: self.baseURL + endpoint) else { fatalError("Missing URL") }
 
@@ -35,21 +37,28 @@ enum NetworkError: Error {
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
             else { throw NetworkError.badRequest }
             let decodedData = try JSONDecoder().decode(T.self, from: data)
-            return decodedData
+            return .success(decodedData)
         }
         catch {
-            return WeatherResponse(coord: Coord(lon: 0, lat: 0), weather: [WeatherKey(description: "")], main: Main(temp: 0, humidity: 0), visibility: 0, wind: Wind(speed: 0), name: "no name") as! T
+            return .failure(NetworkError.badRequest)
         }
     }
     
     func fetchWeatherForZip(zip: String) async {
-        let weatherData = await GET(endpoint: "/weather?zip=\(zip)&units=imperial&appid=\(APP_ID)", type: WeatherResponse.self)
+        let result = await GET(endpoint: "/weather?zip=\(zip)&units=imperial&appid=\(APP_ID)", type: WeatherResponse.self)
         
-        self.name = weatherData.name
-        self.currentTemp = (weatherData.main.temp)
-        self.weatherDescription = weatherData.weather[0].description
-        self.relativeHumidity = String(weatherData.main.humidity)
-        self.windString = String(weatherData.wind.speed)
-        self.visibilityKm = String(weatherData.visibility)
+        switch result {
+            case .success(let weatherData):
+                self.name = weatherData.name
+                self.currentTemp = weatherData.main.temp
+                self.weatherDescription = weatherData.weather[0].description
+                self.relativeHumidity = String(weatherData.main.humidity)
+                self.windString = String(weatherData.wind.speed)
+                self.visibilityKm = String(weatherData.visibility)
+            
+                self.error = false
+            case .failure( _):
+                self.error = true
+        }
     }
 }

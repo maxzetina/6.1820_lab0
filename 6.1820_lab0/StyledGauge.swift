@@ -28,7 +28,6 @@ struct StyledGauge: View {
     
     let gradient = Gradient(colors: [.purple, .blue, .orange, .red])
 
-
     var body: some View {
         Gauge(value: weather.currentTemp, in: minValue...maxValue) {
         } currentValueLabel: {

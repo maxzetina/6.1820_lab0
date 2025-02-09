@@ -7,26 +7,28 @@
 
 import SwiftUI
 
-//error on request
-
 struct ContentView: View {
     @Environment(Weather.self) var weather
     
     @State private var zipCode: String = ""
     @State private var getWeatherPressed = false
-    
+    @State private var showAlert = false
+
     var body: some View {
         VStack {
-            Data().padding(.vertical)
+            Data().padding(.vertical).environment(weather)
             
             InputTextField(placeholderText: "Zip Code", input: $zipCode)
 
             Button(action: {
                 Task{
                     getWeatherPressed.toggle()
-                    _ = await weather.fetchWeatherForZip(zip: zipCode)
+                    await weather.fetchWeatherForZip(zip: zipCode)
                     getWeatherPressed.toggle()
                     
+                    if weather.error {
+                        showAlert = true
+                    }
                 }
             }, label: {
                 RoundedRectangle(cornerRadius: 10).frame(width: 300, height: 50).foregroundColor(.blue).shadow(radius: 10).overlay(
@@ -40,10 +42,11 @@ struct ContentView: View {
                         }
                     }
                 )
-          
             })
         }
         .padding()
+        .alert("Error", isPresented: $showAlert, actions: { Button("OK") {showAlert = false}
+            }, message: {Text("Unable to fetch weather for the provided zip code.")})
     }
 }
 
