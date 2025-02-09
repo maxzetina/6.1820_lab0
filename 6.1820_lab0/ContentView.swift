@@ -7,29 +7,40 @@
 
 import SwiftUI
 
+//error on request
+
 struct ContentView: View {
     @Environment(Weather.self) var weather
     
     @State private var zipCode: String = ""
+    @State private var getWeatherPressed = false
     
     var body: some View {
         VStack {
-            Text("\(weather.name)")
-            Text("\(weather.currentTemp)")
-            Text("\(weather.weatherDescription)")
-            Text("\(weather.relativeHumidity)")
-            Text("\(weather.windString)")
-            Text("\(weather.visibilityKm)")
+            Data().padding(.vertical)
             
-            TextField("Zip Code", text: $zipCode)
+            InputTextField(placeholderText: "Zip Code", input: $zipCode)
 
             Button(action: {
                 Task{
+                    getWeatherPressed.toggle()
                     _ = await weather.fetchWeatherForZip(zip: zipCode)
+                    getWeatherPressed.toggle()
                     
                 }
             }, label: {
-                Text("Get Weather")
+                RoundedRectangle(cornerRadius: 10).frame(width: 300, height: 50).foregroundColor(.blue).shadow(radius: 10).overlay(
+                    
+                    VStack{
+                        if(getWeatherPressed){
+                            LoadingSpinner(scale: 1.5, tint: .white)
+                        }
+                        else{
+                            Text("Get Weather").foregroundColor(.white).fontWeight(.bold).font(.title3)
+                        }
+                    }
+                )
+          
             })
         }
         .padding()

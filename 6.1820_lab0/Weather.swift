@@ -13,12 +13,12 @@ enum NetworkError: Error {
 }
 
 @Observable class Weather {
-    var currentTemp: String = ""
-    var weatherDescription: String = ""
-    var relativeHumidity: String = ""
-    var windString: String = ""
-    var visibilityKm: String = ""
-    var name: String = ""
+    var currentTemp: Double = 0.0
+    var weatherDescription: String = "--"
+    var relativeHumidity: String = "--"
+    var windString: String = "--"
+    var visibilityKm: String = "--"
+    var name: String = "--"
         
     let APP_ID = "547ea74c1786dfee3dc7a51738595d15"
     
@@ -46,7 +46,7 @@ enum NetworkError: Error {
         let weatherData = await GET(endpoint: "/weather?zip=\(zip)&units=imperial&appid=\(APP_ID)", type: WeatherResponse.self)
         
         self.name = weatherData.name
-        self.currentTemp = String(weatherData.main.temp)
+        self.currentTemp = (weatherData.main.temp)
         self.weatherDescription = weatherData.weather[0].description
         self.relativeHumidity = String(weatherData.main.humidity)
         self.windString = String(weatherData.wind.speed)
